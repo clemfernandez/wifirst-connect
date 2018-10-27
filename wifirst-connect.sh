@@ -13,9 +13,9 @@ PORTAL_URL="https://connect.wifirst.net/?perform=true"
 CONNECT_URL="https://selfcare.wifirst.net/sessions"
 PRIV_CONNECT_URL="https://wireless.wifirst.net:8090/goform/HtmlLoginRequest"
 
-TOKEN_REGEX="s/^.*authenticity_token.*value=\"\(.*\)\" \/><\/div>/\1/p"
-USERNAME_REGEX="s/^.*username.*value=\"\(.*\)\" \/>/\1/p"
-PASSWORD_REGEX="s/^.*password.*value=\"\(.*\)\" \/>/\1/p"
+TOKEN_RGX="s/^.*authenticity_token.*value=\"\(.*\)\" \/><\/div>/\1/p"
+USERNAME_RGX="s/^.*username.*value=\"\(.*\)\" \/>/\1/p"
+PASSWORD_RGX="s/^.*password.*value=\"\(.*\)\" \/>/\1/p"
 
 usage() { echo "Usage: wifirst-connect LOGIN PASSWORD"; }
 
@@ -27,7 +27,13 @@ fi
 cd $TMP
 
 PORTAL_RESP=$(curl -sLkb $COOKIES -c $COOKIES -H "User-Agent: $UA" $PORTAL_URL)
-CSRF_TOKEN=$(sed -n "$TOKEN_REGEX" <<< $PORTAL_RESP)
+# echo "portal: "
+# echo $PORTAL_RESP
+
+CSRF_TOKEN=$(echo "$PORTAL_RESP" | sed -n "$TOKEN_RGX")
+# echo "token: "
+# echo $CSRF_TOKEN
+# echo ""
 
 CONNECT_RESP=$(curl -sLkb $COOKIES -c $COOKIES -H "User-Agent: $UA" \
 	--data-urlencode "utf8=&#x2713;" \
@@ -35,9 +41,16 @@ CONNECT_RESP=$(curl -sLkb $COOKIES -c $COOKIES -H "User-Agent: $UA" \
 	--data-urlencode "login=$LOGIN" \
 	--data-urlencode "password=$PASSWORD" \
 	$CONNECT_URL)
+# echo "connect: "
+# echo $CONNECT_RESP
 
-PRIV_USERNAME=$(sed -n "$USERNAME_REGEX" <<< $CONNECT_RESP) 
-PRIV_PASSWORD=$(sed -n "$PASSWORD_REGEX" <<< $CONNECT_RESP) 
+PRIV_USERNAME=$(echo "$CONNECT_RESP" | sed -n "$USERNAME_RGX")
+PRIV_PASSWORD=$(echo "$CONNECT_RESP" | sed -n "$PASSWORD_RGX")
+# echo "priv usr: "
+# echo $PRIV_USERNAME
+# echo "priv passwd: "
+# echo $PRIV_PASSWORD
+# echo ""
 
 PRIV_CONNECT_RESP=$(curl -sLkb $COOKIES -c $COOKIES -H "User-Agent: $UA" \
 	--data-urlencode "commit=Se connecter" \
@@ -47,5 +60,7 @@ PRIV_CONNECT_RESP=$(curl -sLkb $COOKIES -c $COOKIES -H "User-Agent: $UA" \
 	--data-urlencode "success_url=https://apps.wifirst.net/?redirected=true" \
 	--data-urlencode "error_url=https://connect.wifirst.net/login_error" \
 	$PRIV_CONNECT_URL)
+# echo "priv: "
+# echo $PRIV_CONNECT_RESP
 
 rm $COOKIES
