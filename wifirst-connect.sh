@@ -17,7 +17,7 @@ TOKEN_RGX="s/^.*authenticity_token.*value=\"\(.*\)\" \/><\/div>/\1/p"
 USERNAME_RGX="s/^.*username.*value=\"\(.*\)\" \/>/\1/p"
 PASSWORD_RGX="s/^.*password.*value=\"\(.*\)\" \/>/\1/p"
 
-usage() { echo "Usage: wifirst-connect LOGIN PASSWORD"; }
+usage() { echo "Usage: /bin/sh wifirst-connect.sh LOGIN PASSWORD"; }
 
 if [ -z "$LOGIN" ] || [ -z "$PASSWORD" ]; then
 	usage
